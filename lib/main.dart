@@ -23,16 +23,22 @@ class TodoList extends StatefulWidget {
 }
 
 class _TodoListState extends State<TodoList> {
-  List<String> _todos = [];
+  List<TodoItem> _todos = [];
 
   TextEditingController _controller = TextEditingController();
   TextEditingController _editController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _todos.add(TodoItem(text: 'Exemplo de tarefa', isCompleted: false));
+  }
 
   void _addTodo() {
     setState(() {
       String todoText = _controller.text;
       if (todoText.isNotEmpty) {
-        _todos.add(todoText);
+        _todos.add(TodoItem(text: todoText, isCompleted: false));
         _controller.clear();
       }
     });
@@ -44,8 +50,14 @@ class _TodoListState extends State<TodoList> {
     });
   }
 
+  void _toggleTodoCompletion(int index) {
+    setState(() {
+      _todos[index].isCompleted = !_todos[index].isCompleted;
+    });
+  }
+
   void _editTodo(int index) {
-    _editController.text = _todos[index];
+    _editController.text = _todos[index].text;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -66,7 +78,7 @@ class _TodoListState extends State<TodoList> {
               child: Text('Salvar'),
               onPressed: () {
                 setState(() {
-                  _todos[index] = _editController.text;
+                  _todos[index].text = _editController.text;
                   Navigator.of(context).pop();
                 });
               },
@@ -89,8 +101,20 @@ class _TodoListState extends State<TodoList> {
             child: ListView.builder(
               itemCount: _todos.length,
               itemBuilder: (BuildContext context, int index) {
+                final todo = _todos[index];
                 return ListTile(
-                  title: Text(_todos[index]),
+                  title: Text(
+                    todo.text,
+                    style: TextStyle(
+                      decoration: todo.isCompleted
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                      color: todo.isCompleted ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  onTap: () {
+                    _toggleTodoCompletion(index);
+                  },
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -135,4 +159,11 @@ class _TodoListState extends State<TodoList> {
       ),
     );
   }
+}
+
+class TodoItem {
+  String text;
+  bool isCompleted;
+
+  TodoItem({required this.text, required this.isCompleted});
 }
